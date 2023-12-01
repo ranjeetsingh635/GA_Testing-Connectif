@@ -1,0 +1,14 @@
+.item ul,
+.item p {
+  color: theme("colors.light.primaryGrey.tints.900");
+  font-size: 1.4rem;
+  font-style: normal;
+  font-weight: 500;
+  line-height: 2.4rem; /* 171.429% */
+  letter-spacing: -0.16px;
+  margin-bottom: 2rem;
+}
+.item ul {
+  list-style: disc;
+  margin: 1rem;
+}

@@ -1,0 +1,12 @@
+/* .listColor {
+  background-color: #efefef;
+}
+.multiColor :global(.highlightOption) {
+  background: none !important;
+  color: #000 !important;
+  text-transform: capitalize;
+}
+.multiColor :global(.highlightOption):hover {
+  background-color: #0096fb !important;
+}
+.borderError{border: 1px solid #e2355d;border-radius: 27px;} */

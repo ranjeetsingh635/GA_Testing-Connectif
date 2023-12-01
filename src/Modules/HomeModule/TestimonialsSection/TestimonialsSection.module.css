@@ -1,0 +1,45 @@
+.container {
+  max-width: 124rem;
+  width: 100%;
+  margin: 0 auto;
+}
+.carouselWrapper :global(.react-multi-carousel-dot button) {
+  /* background: rgba(94, 23, 235, 0.2); */
+  background: theme("colors.light.primaryPurple.tints.100");
+  border: none;
+  transition: all 150ms;
+}
+.carouselWrapper :global(.react-multi-carousel-dot button:active),
+.carouselWrapper :global(.react-multi-carousel-dot button:focus),
+.carouselWrapper :global(.react-multi-carousel-dot button:hover) {
+  outline-offset: 2px;
+  background: theme("colors.light.primaryPurple.tints.900");
+}
+.carouselWrapper :global(.react-multi-carousel-dot--active button) {
+  width: 15px;
+  height: 10px;
+  /* outline-color: ; */
+  outline: 1px solid theme("colors.light.primaryPurple.tints.900");
+  background: theme("colors.light.primaryPurple.tints.900");
+  border-radius: 10px;
+  border: none;
+}
+.carouselWrapper :global(.react-multi-carousel-list) {
+  padding-bottom: 2rem;
+}
+.imageBox:hover * {
+  transform: rotate(1deg) scale(1.03);
+}
+.imageBox * {
+  border-radius: inherit;
+  transition: all 1s;
+  object-fit: cover;
+  object-position: center;
+}
+/* .signUpBtn:hover {
+  background: theme("colors.light.primaryPurple.tints.100");
+} */
+.signUpBtn {
+  border-color: #716eef;
+  color: #716eef;
+}

@@ -1,0 +1,98 @@
+.container {
+  max-width: 124rem;
+  width: 100%;
+  margin: 0 auto;
+}
+.section::after {
+  content: "";
+  border-radius: 1039px;
+  background: linear-gradient(
+    5deg,
+    #d4d2f9 3.96%,
+    #d9d8f7 48.91%,
+    #ccdbea 93.86%
+  );
+
+  filter: blur(118px);
+  width: 1039px;
+  height: 685.824px;
+  position: absolute;
+  z-index: -1;
+  bottom: -170px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.carouselImage * {
+  display: block !important;
+}
+.carouselWrapper {
+}
+.carouselWrapper :global(.react-multi-carousel-track) {
+  padding-bottom: 40px;
+}
+.carouselWrapper :global(.react-multi-carousel-dot button:focus) {
+  outline-offset: 2px;
+  outline-color: theme("colors.light.primaryPurple.tints.500");
+}
+.carouselWrapper :global(.react-multi-carousel-dot button:active) {
+  background: theme("colors.light.primaryPurple.tints.700");
+}
+.carouselWrapper :global(.react-multi-carousel-dot button) {
+  border: none;
+  outline: 2px solid transparent;
+  outline-offset: 0;
+  background: theme("colors.light.primaryPurple.tints.300");
+}
+.carouselWrapper :global(.react-multi-carousel-dot--active button) {
+  background: theme("colors.light.primaryPurple.tints.900");
+}
+/* link button */
+
+/* .getStarted:before {
+  content: "";
+  width: 0;
+  height: 2px;
+  background-color: #ff470f;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  transition: width 0.3s ease-in-out;
+}
+.getStarted:after {
+  content: "→";
+  position: relative;
+  display: inline-block;
+  margin-left: 5px;
+ 
+   
+}
+.getStarted:hover:before {
+  width: 100%;
+  z-index: -1;
+}
+.getStarted:hover:after {
+  color: #ff470f;
+  margin-left: 15px;
+  transform: rotate(0deg);
+} */
+.getStarted {
+  position: relative;
+  display: inline-flex;
+  padding-bottom: 10px;
+  gap: 10px;
+}
+.getStarted::after {
+  content: "";
+  width: 0;
+  transition: all 150ms;
+  height: 2px;
+  position: absolute;
+  background: theme("colors.light.primaryPurple.tints.900");
+  bottom: 0;
+}
+.getStarted:hover::after {
+  width: 100%;
+}
+.section :global(.react-multi-carousel-list) {
+  padding-bottom: 2rem;
+}

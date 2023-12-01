@@ -1,0 +1,51 @@
+.container {
+  max-width: 124rem;
+  width: 100%;
+  margin: 0 auto;
+}
+.sliderCard {
+  border-radius: 10px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  width: 100%;
+}
+.carouselWrapper :global(.react-multi-carousel-item) {
+  padding: 0 10px;
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow--left) {
+  left: 0;
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow--right) {
+  right: 0;
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow--left::before) {
+  background-image: url("../../../../public/images/arrowleft.svg") !important;
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow--right::before) {
+  background-image: url("../../../../public/images/rightarrow.svg") !important;
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow::before) {
+  content: "";
+  width: 24px;
+  height: 24px;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+.carouselWrapper :global(.react-multiple-carousel__arrow) {
+  background-color: #fff;
+  border-radius: 50%;
+}
+@media (max-width: 992px) {
+  .sliderHeading {
+    font-size: 2.6rem;
+  }
+}
+@media (max-width: 575px) {
+  .sliderHeading {
+    font-size: 1.8rem;
+  }
+}

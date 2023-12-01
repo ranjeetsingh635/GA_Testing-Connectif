@@ -1,0 +1,4 @@
+.tabTrigger[aria-selected="true"] {
+  color: theme("colors.light.primaryPurple.tints.900");
+  border-color: currentColor;
+}

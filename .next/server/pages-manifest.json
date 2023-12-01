@@ -1,0 +1,18 @@
+{
+  "/_app": "pages/_app.js",
+  "/api/hello": "pages/api/hello.js",
+  "/_error": "pages/_error.js",
+  "/complete-business": "pages/complete-business.html",
+  "/completed-business": "pages/completed-business.html",
+  "/create-account": "pages/create-account.html",
+  "/email-verification": "pages/email-verification.html",
+  "/forgot-password": "pages/forgot-password.html",
+  "/": "pages/index.html",
+  "/login": "pages/login.html",
+  "/setup-business": "pages/setup-business.html",
+  "/skip-profile": "pages/skip-profile.html",
+  "/supplier/setup-business": "pages/supplier/setup-business.html",
+  "/reset-password": "pages/reset-password.js",
+  "/_document": "pages/_document.js",
+  "/404": "pages/404.html"
+}

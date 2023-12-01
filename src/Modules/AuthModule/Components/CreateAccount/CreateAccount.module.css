@@ -1,0 +1,12 @@
+.checkMark {
+  background-position: 50% 2px;
+  background-repeat: no-repeat;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.CommonCheckbox input:checked + .checkMark {
+  background-position: 50% 50%;
+  /* background-color: red; */
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg width='17' height='16' viewBox='0 0 17 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3e%3cpath d='M3.65625 7.21053L7.52722 11L13.6562 5' stroke='%235E17EB' stroke-width='1.5' stroke-linecap='round'/%3e%3c/svg%3e ");
+}

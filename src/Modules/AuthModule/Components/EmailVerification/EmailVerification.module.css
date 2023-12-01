@@ -1,0 +1,24 @@
+.pinInput {
+}
+.pinInput > div {
+  display: flex;
+  justify-content: center;
+  gap: 1.2rem;
+}
+
+.pinInput > div > input:focus {
+  outline-offset: 2px;
+  border-color: theme("colors.light.primaryPurple.tints.800");
+}
+.pinInput > div > input {
+  width: 5.6rem !important;
+  height: 5.6rem;
+  transition: all 150ms;
+  border-radius: 1rem;
+  flex-shrink: 0;
+  outline-color: theme("colors.light.primaryPurple.tints.400");
+  border: 2px solid theme("colors.light.primaryGrey.tints.100");
+}
+/* .defaultBtn {
+  background-color: rgba(172, 148, 221, 0.5);
+} */

@@ -1,0 +1,19 @@
+/* .isVerified {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='25' height='25' viewBox='0 0 25 25' fill='none'%3e%3cpath d='M4.15625 12.3333L9.77787 17.75L20.1563 7.75' stroke='%2300851D' stroke-width='2' stroke-linecap='round'/%3e%3c/svg%3e");
+    background-position: 8px center;
+    background-repeat: no-repeat;
+    padding: 8px 12px 8px 34px;
+    background-size: 20px;
+  } */
+.rating > span {
+  display: inline-block;
+  vertical-align: bottom;
+  margin: 0 4px;
+  margin-left: 0;
+}
+.rating svg {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  margin-right: 4px;
+}

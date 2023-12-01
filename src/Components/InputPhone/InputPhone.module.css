@@ -1,0 +1,10 @@
+.phoneColor {
+    padding-left: 8px;
+    background: #efefef;
+    width: 100%;
+}
+
+.react-tel-input .flag-dropdown {
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+}

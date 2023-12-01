@@ -1,0 +1,17 @@
+.container {
+  max-width: 124rem;
+  width: 100%;
+  margin: 0 auto;
+}
+.box {
+  border-radius: 10px;
+  border: 2px solid;
+  border-color: theme("colors.light.primaryGrey.tints.100");
+}
+
+.odd {
+  background: linear-gradient(290deg, #ebf5f6 9.76%, #e6e9fc 84.14%);
+}
+.even {
+  background: linear-gradient(248deg, #f4f5ff 9.3%, #cef7f1 85.31%);
+}

@@ -1,0 +1,26 @@
+.ul li:not(:last-child) {
+  padding-bottom: 2.4rem;
+  border-bottom: 1px solid theme("colors.inputBorder");
+}
+/* .ul li:not(:first-child),
+.ul li:not(:last-child) {
+} */
+.ul li:not(:first-child) {
+  margin-top: 2.4rem;
+}
+.ul li p {
+  margin-top: 1rem;
+  font-weight: 500;
+}
+.ul li p,
+.ul li {
+  text-align: left;
+}
+.ul li h3 {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 1rem;
+  font-weight: 600;
+  line-height: 1;
+}
