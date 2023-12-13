@@ -1,7 +1,7 @@
 {
   "/_app": "pages/_app.js",
-  "/api/hello": "pages/api/hello.js",
   "/_error": "pages/_error.js",
+  "/api/hello": "pages/api/hello.js",
   "/complete-business": "pages/complete-business.html",
   "/completed-business": "pages/completed-business.html",
   "/create-account": "pages/create-account.html",
