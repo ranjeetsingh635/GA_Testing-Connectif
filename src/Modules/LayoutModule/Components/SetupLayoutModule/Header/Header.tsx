@@ -12,7 +12,7 @@ function Header() {
         </Link>
         <Link passHref href={`/create-account`}>
           <a className="primaryBtn px-[1rem] max-w-[15rem] py-[2rem] rounded-[.6rem]">
-            Bhup+Jeet1
+            Bhup+Jeet2
           </a>
         </Link>
       </div>
