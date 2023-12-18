@@ -11,7 +11,6 @@ COPY package.json yarn.lock ./
 COPY . .
 
 # Install dependencies using yarn
-RUN yarn install
 RUN yarn build
 
 # Expose the port that the app will run on
