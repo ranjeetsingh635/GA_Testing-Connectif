@@ -9,6 +9,7 @@ COPY package.json yarn.lock ./
 
 # Install dependencies using yarn
 RUN yarn install
+RUN yarn build
 
 # Copy the rest of the application code to the working directory
 COPY . .
