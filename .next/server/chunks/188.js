@@ -267,7 +267,7 @@ function Header() {
                     href: `/create-account`,
                     children: /*#__PURE__*/ react_jsx_runtime__WEBPACK_IMPORTED_MODULE_0__.jsx("a", {
                         className: "primaryBtn px-[1rem] max-w-[15rem] py-[2rem] rounded-[.6rem]",
-                        children: "Mobile1110"
+                        children: "Mukund"
                     })
                 })
             ]
