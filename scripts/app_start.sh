@@ -7,4 +7,4 @@ cd /home/ubuntu/var
 #sudo pm2 delete Frontend
 #sudo pm2 start server.js --name Frontend
 pm2 delete Frontend
-pm2 start npm --name "conect" -- start
+pm2 start npm --name "Frontend" -- start
