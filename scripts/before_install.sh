@@ -4,10 +4,17 @@
 cd /home/ubuntu/var
 
 #_Update_&_Set_Node_Version
-curl -sL https://rpm.nodesource.com/setup_14.x | sudo -E bash -
+sudo apt install curl 
+curl https://raw.githubusercontent.com/creationix/nvm/master/install.sh | bash
+source ~/.bashrc
+
+nvm install v18.11.0
 
 #_Download_Node_&NPM
-sudo -y install nodejs npm
+sudo apt install npm -y
+
+#_Install_Yarn
+npm install --global yarn
 
 #_Download_PM2
 npm install pm2@latest -g
