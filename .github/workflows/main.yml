@@ -1,0 +1,21 @@
+name: Deploy React App
+
+on:
+  push:
+    branches:
+      - main  # Change this to your branch name if different
+
+jobs:
+  deploy:
+    runs-on: self-hosted  # Use your own server as the runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build and Run Docker Container
+        run: |
+          docker stop react-container || true
+          docker rm react-container || true
+          docker build -t my-react-app .
+          docker run -d -p 80:80 --name react-container my-react-app
