@@ -37,7 +37,7 @@ jobs:
 
       - name: Test New Deployment
         run: |
-          for i in {1..10}; do
+          for i in {1..20}; do
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:4001 || echo "000")
             if [ "$STATUS" -eq 200 ]; then
               echo "Deployment successful!"
