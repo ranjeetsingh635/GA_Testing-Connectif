@@ -4,8 +4,8 @@ services:
   app_blue:
     container_name: app_blue
     build: .
-    ports:
-      - "4001:4001"
+    expose:
+      - "4001"  # No need to map ports publicly
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4001"]
@@ -15,11 +15,11 @@ services:
   app_green:
     container_name: app_green
     build: .
-    ports:
-      - "4002:4001"
+    expose:
+      - "4001"
     restart: always
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4002"]
+      test: ["CMD", "curl", "-f", "http://localhost:4001"]
       interval: 10s
       retries: 5
 
@@ -27,7 +27,7 @@ services:
     image: nginx:latest
     container_name: nginx_reverse_proxy
     ports:
-      - "80:80"
+      - "4001:4001"  # Fixed Public Port
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
