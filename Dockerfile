@@ -18,4 +18,3 @@ EXPOSE 4001
 
 # Define the comand to run your application
 CMD ["yarn", "start"]
-
