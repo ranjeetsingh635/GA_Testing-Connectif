@@ -52,7 +52,18 @@ jobs:
       - name: Restart Nginx to Ensure Traffic Switches
         run: docker restart nginx_reverse_proxy
 
-      - name: Stop and Remove Old Container
+      - name: Stop and Remove Old Container and Image
         run: |
           echo "Stopping old container: ${{ env.OLD }}"
           docker stop ${{ env.OLD }} && docker rm ${{ env.OLD }}
+          echo "Removing old image..."
+          IMAGE_ID=$(docker images -q $(docker inspect --format='{{.Config.Image}}' ${{ env.OLD }}) || echo "")
+          if [ -n "$IMAGE_ID" ]; then
+            docker rmi -f "$IMAGE_ID"
+            echo "Old image removed: $IMAGE_ID"
+          else
+            echo "No image found for old container."
+          fi
+
+      - name: Remove Unused Docker Images
+        run: docker image prune -f
