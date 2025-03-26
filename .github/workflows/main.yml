@@ -1,21 +1,77 @@
-name: Deploy React App
+name: Deploy Next.js with Zero Downtime
 
 on:
   push:
     branches:
-      - main  # Change this to your branch name if different
+      - main  # Change this if needed
 
 jobs:
   deploy:
-    runs-on: self-hosted  # Use your own server as the runner
+    runs-on: self-hosted  # Make sure your Ubuntu runner is set up correctly.
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Build and Run Docker Container
+      - name: Determine Active App
+        id: active
         run: |
-          docker stop react-container || true
-          docker rm react-container || true
-          docker build -t my-react-app .
-          docker run -d -p 4001:4001 --name react-container my-react-app
+          ACTIVE=$(docker ps --format "{{.Names}}" | grep -E 'next_app_blue|next_app_green' | head -n 1)
+          if [ "$ACTIVE" == "next_app_blue" ]; then
+            echo "TARGET=next_app_green" >> $GITHUB_ENV
+            echo "OLD=next_app_blue" >> $GITHUB_ENV
+          else
+            echo "TARGET=next_app_blue" >> $GITHUB_ENV
+            echo "OLD=next_app_green" >> $GITHUB_ENV
+          fi
+          echo "Switching deployment: New target is ${{ env.TARGET }}"
+
+      - name: Build and Start the Inactive App
+        run: |
+          docker compose -f docker-compose.prod.yml build ${{ env.TARGET }}
+          docker compose -f docker-compose.prod.yml up -d ${{ env.TARGET }}
+          echo "Started new container: ${{ env.TARGET }}"
+
+      - name: Wait for New Container to Become Healthy
+        run: sleep 10  # Adjust if app takes longer to start
+
+      - name: Test New Container Health (Retries for Stability)
+        run: |
+          for i in {1..5}; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:4001)
+            if [ "$STATUS" -eq 200 ]; then
+              echo "New container is healthy!"
+              exit 0
+            fi
+            echo "Waiting for service to start... ($i/5)"
+            sleep 5
+          done
+          echo "New deployment failed, keeping old container running."
+          exit 1
+
+      - name: Reload Nginx Only If Necessary
+        run: |
+          if docker ps | grep -q "nginx_reverse_proxy"; then
+            echo "Restarting Nginx..."
+            docker restart nginx_reverse_proxy
+          else
+            echo "Nginx container not found, skipping restart."
+          fi
+
+      - name: Stop and Remove Old Container
+        run: |
+          echo "Stopping old container: ${{ env.OLD }}"
+          docker stop ${{ env.OLD }} && docker rm ${{ env.OLD }}
+
+      - name: Remove Old Docker Image
+        run: |
+          IMAGE_ID=$(docker images -q nextjs_app)  # Ensure this is your correct image name
+          if [ -n "$IMAGE_ID" ]; then
+            echo "Removing old Docker image..."
+            docker rmi -f $IMAGE_ID
+          else
+            echo "No old image found, skipping removal."
+          fi
+
+      - name: Prune Unused Docker Images
+        run: docker image prune -f
