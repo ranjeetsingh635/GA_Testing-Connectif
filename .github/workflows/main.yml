@@ -3,11 +3,11 @@ name: Deploy Next.js with Zero Downtime
 on:
   push:
     branches:
-      - main  # Change this if needed
+      - main  
 
 jobs:
   deploy:
-    runs-on: self-hosted  # Make sure your EC2 instance is set up as a GitHub runner
+    runs-on: self-hosted
 
     steps:
       - name: Checkout Repository
@@ -33,7 +33,7 @@ jobs:
           echo "Started new container: ${{ env.TARGET }}"
 
       - name: Wait for New Container to be Ready
-        run: sleep 10  # Adjust if needed
+        run: sleep 10  
 
       - name: Test New Deployment
         run: |
@@ -49,17 +49,10 @@ jobs:
           echo "Deployment failed!"
           exit 1
 
-      - name: Restart Nginx to Switch Traffic
+      - name: Restart Nginx to Ensure Traffic Switches
         run: docker restart nginx_reverse_proxy
 
-      - name: Stop and Remove Old Container (AFTER New is Running)
+      - name: Stop and Remove Old Container
         run: |
           echo "Stopping old container: ${{ env.OLD }}"
           docker stop ${{ env.OLD }} && docker rm ${{ env.OLD }}
-
-      - name: Remove Old Docker Image
-        run: |
-          IMAGE_ID=$(docker images -q nextjs_app)
-          if [ -n "$IMAGE_ID" ]; then
-            docker rmi -f $IMAGE_ID
-          fi
