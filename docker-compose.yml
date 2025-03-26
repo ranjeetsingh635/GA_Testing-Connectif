@@ -3,9 +3,11 @@ version: '3.8'
 services:
   app_blue:
     container_name: app_blue
-    build: .
+    build:
+      context: .
+    image: nextjs_app:blue
     expose:
-      - "4001"  # No need to map ports publicly
+      - "4001"
     restart: always
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4001"]
@@ -14,7 +16,9 @@ services:
 
   app_green:
     container_name: app_green
-    build: .
+    build:
+      context: .
+    image: nextjs_app:green
     expose:
       - "4001"
     restart: always
@@ -27,7 +31,7 @@ services:
     image: nginx:latest
     container_name: nginx_reverse_proxy
     ports:
-      - "4001:4001"  # Fixed Public Port
+      - "4001:4001"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
