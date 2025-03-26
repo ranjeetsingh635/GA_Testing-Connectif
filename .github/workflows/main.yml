@@ -3,75 +3,60 @@ name: Deploy Next.js with Zero Downtime
 on:
   push:
     branches:
-      - main  # Change this if needed
+      - main  # Change if needed
 
 jobs:
   deploy:
-    runs-on: self-hosted  # Make sure your Ubuntu runner is set up correctly.
+    runs-on: self-hosted  # Ensure EC2 is set up as a runner
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Determine Active App
+      - name: Determine Active Container
         id: active
         run: |
-          ACTIVE=$(docker ps --format "{{.Names}}" | grep -E 'next_app_blue|next_app_green' | head -n 1)
-          if [ "$ACTIVE" == "next_app_blue" ]; then
-            echo "TARGET=next_app_green" >> $GITHUB_ENV
-            echo "OLD=next_app_blue" >> $GITHUB_ENV
+          ACTIVE=$(docker ps --format "{{.Names}}" | grep -E 'app_blue|app_green' | head -n 1)
+          if [ "$ACTIVE" == "app_blue" ]; then
+            echo "TARGET=app_green" >> $GITHUB_ENV
+            echo "OLD=app_blue" >> $GITHUB_ENV
           else
-            echo "TARGET=next_app_blue" >> $GITHUB_ENV
-            echo "OLD=next_app_green" >> $GITHUB_ENV
+            echo "TARGET=app_blue" >> $GITHUB_ENV
+            echo "OLD=app_green" >> $GITHUB_ENV
           fi
-          echo "Switching deployment: New target is ${{ env.TARGET }}"
 
-      - name: Build and Start the Inactive App
+      - name: Build and Start New Container
         run: |
-          docker compose -f docker-compose.prod.yml build ${{ env.TARGET }}
-          docker compose -f docker-compose.prod.yml up -d ${{ env.TARGET }}
-          echo "Started new container: ${{ env.TARGET }}"
+          docker compose build ${{ env.TARGET }}
+          docker compose up -d ${{ env.TARGET }}
 
-      - name: Wait for New Container to Become Healthy
-        run: sleep 10  # Adjust if app takes longer to start
+      - name: Wait for New Container to be Ready
+        run: sleep 10  # Adjust as needed
 
-      - name: Test New Container Health (Retries for Stability)
+      - name: Test New Deployment
         run: |
           for i in {1..5}; do
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:4001)
             if [ "$STATUS" -eq 200 ]; then
-              echo "New container is healthy!"
+              echo "Deployment successful!"
               exit 0
             fi
             echo "Waiting for service to start... ($i/5)"
             sleep 5
           done
-          echo "New deployment failed, keeping old container running."
+          echo "Deployment failed!"
           exit 1
 
-      - name: Reload Nginx Only If Necessary
-        run: |
-          if docker ps | grep -q "nginx_reverse_proxy"; then
-            echo "Restarting Nginx..."
-            docker restart nginx_reverse_proxy
-          else
-            echo "Nginx container not found, skipping restart."
-          fi
+      - name: Restart Nginx to Switch Traffic
+        run: docker restart nginx_reverse_proxy
 
       - name: Stop and Remove Old Container
         run: |
-          echo "Stopping old container: ${{ env.OLD }}"
           docker stop ${{ env.OLD }} && docker rm ${{ env.OLD }}
 
       - name: Remove Old Docker Image
         run: |
-          IMAGE_ID=$(docker images -q nextjs_app)  # Ensure this is your correct image name
+          IMAGE_ID=$(docker images -q nextjs_app)
           if [ -n "$IMAGE_ID" ]; then
-            echo "Removing old Docker image..."
             docker rmi -f $IMAGE_ID
-          else
-            echo "No old image found, skipping removal."
           fi
-
-      - name: Prune Unused Docker Images
-        run: docker image prune -f
