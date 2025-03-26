@@ -33,7 +33,7 @@ jobs:
           echo "Started new container: ${{ env.TARGET }}"
 
       - name: Wait for New Container to be Ready
-        run: sleep 10  
+        run: sleep 20 
 
       - name: Test New Deployment
         run: |
