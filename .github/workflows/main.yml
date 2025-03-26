@@ -28,14 +28,15 @@ jobs:
 
       - name: Build and Start New Container
         run: |
-          docker compose build ${{ env.TARGET }}
-          docker compose up -d ${{ env.TARGET }}
+          echo "Building new container: ${{ env.TARGET }}"
+          docker compose build --no-cache ${{ env.TARGET }}
+          docker compose up -d --force-recreate ${{ env.TARGET }}
           echo "Started new container: ${{ env.TARGET }}"
 
       - name: Wait for New Container to be Ready
         run: sleep 20 
 
-      - name: Test New Deployment
+      - name: Check New Deployment Health
         run: |
           for i in {1..30}; do
             STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:4001 || echo "000")
@@ -44,13 +45,15 @@ jobs:
               exit 0
             fi
             echo "Waiting for service to start... ($i/30)"
-            sleep 5  # Increase wait time
+            sleep 5
           done
           echo "Deployment failed!"
           exit 1
 
       - name: Restart Nginx to Ensure Traffic Switches
-        run: docker restart nginx_reverse_proxy
+        run: |
+          echo "Restarting Nginx reverse proxy..."
+          docker restart nginx_reverse_proxy
 
       - name: Stop and Remove Old Container and Image
         run: |
