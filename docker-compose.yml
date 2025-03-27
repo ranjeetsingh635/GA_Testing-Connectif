@@ -1,18 +1,15 @@
 version: '3.8'
 
 services:
-  app_blue:
-    container_name: app_blue
-    build:
-      context: .
-    image: nextjs_app:blue
-    expose:
-      - "4001"
-    restart: always
+  app_green:
+    build: .
+    ports:
+      - "4001:4001"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:4001"]
-      interval: 10s
-      retries: 5
+      test: ["CMD", "curl", "-f", "http://localhost:4001/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   app_green:
     container_name: app_green
