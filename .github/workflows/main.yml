@@ -15,19 +15,45 @@ jobs:
 
       - name: Setup Node.js and Yarn
         run: |
-          # Install Node.js and npm
-          curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
-          apt-get install -y nodejs
+          # Check if Node.js is already installed
+          if ! command -v node &> /dev/null
+          then
+            # Use Node Version Manager (NVM) for installation
+            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+            
+            # Source NVM
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            
+            # Install latest LTS Node.js version
+            nvm install --lts
+            nvm use --lts
+          fi
 
-          # Install Yarn
-          npm install -g yarn
+          # Install Yarn globally
+          if ! command -v yarn &> /dev/null
+          then
+            npm install -g yarn
+          fi
 
       - name: Install PM2 Globally
-        run: npm install -g pm2
+        run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
+          # Install PM2 if not already installed
+          if ! command -v pm2 &> /dev/null
+          then
+            npm install -g pm2
+          fi
 
       - name: Determine Next Deployment Slot
-        id: deploy-slot
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           # Check existing PM2 processes
           EXISTING_APPS=$(pm2 list | grep -E 'test-blue|test-green' || true)
           
@@ -47,14 +73,28 @@ jobs:
 
       - name: Install Dependencies
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
+          # Install project dependencies
           yarn install
 
       - name: Build Application
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
+          # Build the application
           yarn build
 
       - name: Start New PM2 Process
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           # Generate unique port for new deployment
           PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")
           
@@ -64,6 +104,10 @@ jobs:
 
       - name: Wait for New Process to Start
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           for i in {1..30}; do
             if pm2 describe ${{ env.DEPLOY_APP }} | grep -q "online"; then
               echo "New process started successfully"
@@ -76,6 +120,10 @@ jobs:
 
       - name: Update Nginx Configuration
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           # Dynamically update Nginx to route to new process
           NEW_PORT=$(pm2 describe ${{ env.DEPLOY_APP }} | grep "port" | awk '{print $NF}')
           
@@ -85,10 +133,18 @@ jobs:
       - name: Remove Old Process
         if: env.OLD_APP != ''
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           pm2 delete ${{ env.OLD_APP }} || true
           pm2 save
 
       - name: Cleanup
         run: |
+          # Ensure NVM is sourced
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+          
           pm2 cleanup
           yarn cache clean
