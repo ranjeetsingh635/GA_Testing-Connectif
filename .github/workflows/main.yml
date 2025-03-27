@@ -13,10 +13,14 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
+      - name: Setup Node.js and Yarn
+        run: |
+          # Install Node.js and npm
+          curl -fsSL https://deb.nodesource.com/setup_16.x | bash -
+          apt-get install -y nodejs
+
+          # Install Yarn
+          npm install -g yarn
 
       - name: Install PM2 Globally
         run: npm install -g pm2
@@ -42,10 +46,12 @@ jobs:
           fi
 
       - name: Install Dependencies
-        run: yarn install
+        run: |
+          yarn install
 
       - name: Build Application
-        run: yarn build
+        run: |
+          yarn build
 
       - name: Start New PM2 Process
         run: |
