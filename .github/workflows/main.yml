@@ -26,16 +26,10 @@ jobs:
           fi
           echo "Deploying to ${{ env.TARGET }} while keeping ${{ env.OLD }} running."
 
-      - name: Pull Latest Docker Images
-        run: |
-          docker compose pull ${{ env.TARGET }}
-
       - name: Build and Start New Container
         run: |
-          echo "Building new container: ${{ env.TARGET }}"
-          docker compose build ${{ env.TARGET }}
+          docker compose build --no-cache ${{ env.TARGET }}
           docker compose up -d --force-recreate ${{ env.TARGET }}
-          echo "Started new container: ${{ env.TARGET }}"
 
       - name: Wait for New Container to be Ready
         run: |
@@ -56,36 +50,14 @@ jobs:
             exit 1
           fi
 
-      - name: Update Nginx Configuration
-        run: |
-          # Backup existing Nginx configuration
-          cp /etc/nginx/nginx.conf /etc/nginx/nginx.conf.backup
-
-          # Update Nginx configuration to route to new container
-          sed -i "s/server ${{ env.OLD }}:4001/server ${{ env.TARGET }}:4001/g" /etc/nginx/nginx.conf
-
-          # Test Nginx configuration
-          nginx -t
-
-          # Reload Nginx to apply new configuration
-          systemctl reload nginx
+      - name: Restart Nginx
+        run: docker restart nginx_reverse_proxy
 
       - name: Clean Up Old Resources
         run: |
-          # Remove old container
-          if docker ps -a | grep -q "${{ env.OLD }}"; then
-            docker stop ${{ env.OLD }}
-            docker rm ${{ env.OLD }}
-          fi
-
-          # Remove old images
-          docker images | grep "nextjs_app" | grep -v "${{ env.TARGET }}" | awk '{print $3}' | xargs -r docker rmi -f
+          docker stop ${{ env.OLD }} || true
+          docker rm ${{ env.OLD }} || true
+          docker rmi nextjs_app:${{ env.OLD == 'app_blue' && 'blue' || 'green' }} || true
 
       - name: Prune Docker Resources
-        run: |
-          docker system prune -af --filter "label!=keep"
-
-      - name: Send Deployment Notification
-        if: success()
-        run: |
-          echo "Deployment to ${{ env.TARGET }} completed successfully on test.mobilecoderz.agency"
+        run: docker system prune -af --filter "label!=keep"
