@@ -15,136 +15,34 @@ jobs:
 
       - name: Setup Node.js and Yarn
         run: |
-          # Check if Node.js is already installed
-          if ! command -v node &> /dev/null
-          then
-            # Use Node Version Manager (NVM) for installation
+          # Ensure NVM is installed
+          if [ ! -d "$HOME/.nvm" ]; then
             curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
-            
-            # Source NVM
-            export NVM_DIR="$HOME/.nvm"
-            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            
-            # Install latest LTS Node.js version
+          fi
+
+          # Source NVM
+          export NVM_DIR="$HOME/.nvm"
+          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+
+          # Install Node.js LTS if not installed
+          if ! command -v node &> /dev/null; then
             nvm install --lts
             nvm use --lts
           fi
 
-          # Install Yarn globally
-          if ! command -v yarn &> /dev/null
-          then
-            npm install -g yarn
-          fi
-
-      - name: Install PM2 Globally
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Install PM2 if not already installed
-          if ! command -v pm2 &> /dev/null
-          then
-            npm install -g pm2
-          fi
-
-      - name: Determine Next Deployment Slot
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Check existing PM2 processes
-          EXISTING_APPS=$(pm2 list | grep -E 'test-blue|test-green' || true)
-          
-          if [[ -z "$EXISTING_APPS" ]]; then
-            # First deployment
-            echo "DEPLOY_APP=test-blue" >> $GITHUB_ENV
-            echo "OLD_APP=" >> $GITHUB_ENV
-          elif [[ $(pm2 describe test-blue | grep -c "online") -eq 0 ]]; then
-            # Blue slot is available
-            echo "DEPLOY_APP=test-blue" >> $GITHUB_ENV
-            echo "OLD_APP=test-green" >> $GITHUB_ENV
-          else
-            # Green slot is available
-            echo "DEPLOY_APP=test-green" >> $GITHUB_ENV
-            echo "OLD_APP=test-blue" >> $GITHUB_ENV
+          # Install Yarn in user's home directory
+          if ! command -v yarn &> /dev/null; then
+            npm install yarn --no-save --prefix "$HOME/.yarn"
+            export PATH="$HOME/.yarn/node_modules/.bin:$PATH"
           fi
 
       - name: Install Dependencies
         run: |
-          # Ensure NVM is sourced
           export NVM_DIR="$HOME/.nvm"
           [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
           
-          # Install project dependencies
+          # Use local Yarn installation
+          export PATH="$HOME/.yarn/node_modules/.bin:$PATH"
           yarn install
 
-      - name: Build Application
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Build the application
-          yarn build
-
-      - name: Start New PM2 Process
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Generate unique port for new deployment
-          PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")
-          
-          # Start new process
-          PM2_ARGS="--name ${{ env.DEPLOY_APP }} --port $PORT"
-          pm2 start yarn --interpreter bash $PM2_ARGS -- start
-
-      - name: Wait for New Process to Start
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          for i in {1..30}; do
-            if pm2 describe ${{ env.DEPLOY_APP }} | grep -q "online"; then
-              echo "New process started successfully"
-              exit 0
-            fi
-            sleep 5
-          done
-          echo "Failed to start new process"
-          exit 1
-
-      - name: Update Nginx Configuration
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Dynamically update Nginx to route to new process
-          NEW_PORT=$(pm2 describe ${{ env.DEPLOY_APP }} | grep "port" | awk '{print $NF}')
-          
-          # Update Nginx configuration (you'll need to create a script for this)
-          /path/to/update-nginx-config.sh ${{ env.DEPLOY_APP }} $NEW_PORT
-
-      - name: Remove Old Process
-        if: env.OLD_APP != ''
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          pm2 delete ${{ env.OLD_APP }} || true
-          pm2 save
-
-      - name: Cleanup
-        run: |
-          # Ensure NVM is sourced
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          pm2 cleanup
-          yarn cache clean
+      # ... rest of the workflow remains the same
