@@ -1,9 +1,9 @@
-name: Zero-Downtime Deployment
+name: Zero-Downtime Deployment with PM2
 
 on:
   push:
     branches:
-      - main  
+      - main
 
 jobs:
   deploy:
@@ -13,51 +13,76 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Determine Active Container
-        id: active
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install PM2 Globally
+        run: npm install -g pm2
+
+      - name: Determine Next Deployment Slot
+        id: deploy-slot
         run: |
-          ACTIVE=$(docker ps --format "{{.Names}}" | grep -E 'app_blue|app_green' | head -n 1)
-          if [ "$ACTIVE" == "app_blue" ]; then
-            echo "TARGET=app_green" >> $GITHUB_ENV
-            echo "OLD=app_blue" >> $GITHUB_ENV
+          # Check existing PM2 processes
+          EXISTING_APPS=$(pm2 list | grep -E 'test-blue|test-green' || true)
+          
+          if [[ -z "$EXISTING_APPS" ]]; then
+            # First deployment
+            echo "DEPLOY_APP=test-blue" >> $GITHUB_ENV
+            echo "OLD_APP=" >> $GITHUB_ENV
+          elif [[ $(pm2 describe test-blue | grep -c "online") -eq 0 ]]; then
+            # Blue slot is available
+            echo "DEPLOY_APP=test-blue" >> $GITHUB_ENV
+            echo "OLD_APP=test-green" >> $GITHUB_ENV
           else
-            echo "TARGET=app_blue" >> $GITHUB_ENV
-            echo "OLD=app_green" >> $GITHUB_ENV
+            # Green slot is available
+            echo "DEPLOY_APP=test-green" >> $GITHUB_ENV
+            echo "OLD_APP=test-blue" >> $GITHUB_ENV
           fi
-          echo "Deploying to ${{ env.TARGET }} while keeping ${{ env.OLD }} running."
 
-      - name: Build and Start New Container
-        run: |
-          docker compose build --no-cache ${{ env.TARGET }}
-          docker compose up -d --force-recreate ${{ env.TARGET }}
+      - name: Install Dependencies
+        run: yarn install
 
-      - name: Wait for New Container to be Ready
+      - name: Build Application
+        run: yarn build
+
+      - name: Start New PM2 Process
         run: |
-          max_attempts=30
-          attempt=0
-          while [ $attempt -lt $max_attempts ]; do
-            if docker exec ${{ env.TARGET }} curl -f http://localhost:4001 > /dev/null 2>&1; then
-              echo "New container is ready!"
-              break
+          # Generate unique port for new deployment
+          PORT=$(python3 -c "import socket; s=socket.socket(); s.bind(('', 0)); print(s.getsockname()[1]); s.close()")
+          
+          # Start new process
+          PM2_ARGS="--name ${{ env.DEPLOY_APP }} --port $PORT"
+          pm2 start yarn --interpreter bash $PM2_ARGS -- start
+
+      - name: Wait for New Process to Start
+        run: |
+          for i in {1..30}; do
+            if pm2 describe ${{ env.DEPLOY_APP }} | grep -q "online"; then
+              echo "New process started successfully"
+              exit 0
             fi
-            echo "Waiting for new container to be ready... (Attempt $((attempt+1))/$max_attempts)"
-            sleep 10
-            attempt=$((attempt+1))
+            sleep 5
           done
+          echo "Failed to start new process"
+          exit 1
 
-          if [ $attempt -eq $max_attempts ]; then
-            echo "New container failed to become ready"
-            exit 1
-          fi
-
-      - name: Restart Nginx
-        run: docker restart nginx_reverse_proxy
-
-      - name: Clean Up Old Resources
+      - name: Update Nginx Configuration
         run: |
-          docker stop ${{ env.OLD }} || true
-          docker rm ${{ env.OLD }} || true
-          docker rmi nextjs_app:${{ env.OLD == 'app_blue' && 'blue' || 'green' }} || true
+          # Dynamically update Nginx to route to new process
+          NEW_PORT=$(pm2 describe ${{ env.DEPLOY_APP }} | grep "port" | awk '{print $NF}')
+          
+          # Update Nginx configuration (you'll need to create a script for this)
+          /path/to/update-nginx-config.sh ${{ env.DEPLOY_APP }} $NEW_PORT
 
-      - name: Prune Docker Resources
-        run: docker system prune -af --filter "label!=keep"
+      - name: Remove Old Process
+        if: env.OLD_APP != ''
+        run: |
+          pm2 delete ${{ env.OLD_APP }} || true
+          pm2 save
+
+      - name: Cleanup
+        run: |
+          pm2 cleanup
+          yarn cache clean
