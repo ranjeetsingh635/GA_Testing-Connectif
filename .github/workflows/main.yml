@@ -1,9 +1,9 @@
-name: Zero-Downtime Deployment with PM2
+name: Deploy Next.js with Zero Downtime
 
 on:
   push:
     branches:
-      - main
+      - main  
 
 jobs:
   deploy:
@@ -13,36 +13,60 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js and Yarn
+      - name: Determine Active Container
+        id: active
         run: |
-          # Ensure NVM is installed
-          if [ ! -d "$HOME/.nvm" ]; then
-            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+          ACTIVE=$(docker ps --format "{{.Names}}" | grep -E 'app_blue|app_green' | head -n 1)
+          if [ "$ACTIVE" == "app_blue" ]; then
+            echo "TARGET=app_green" >> $GITHUB_ENV
+            echo "OLD=app_blue" >> $GITHUB_ENV
+          else
+            echo "TARGET=app_blue" >> $GITHUB_ENV
+            echo "OLD=app_green" >> $GITHUB_ENV
           fi
+          echo "Deploying to ${{ env.TARGET }} while keeping ${{ env.OLD }} running."
 
-          # Source NVM
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-
-          # Install Node.js LTS if not installed
-          if ! command -v node &> /dev/null; then
-            nvm install --lts
-            nvm use --lts
-          fi
-
-          # Install Yarn in user's home directory
-          if ! command -v yarn &> /dev/null; then
-            npm install yarn --no-save --prefix "$HOME/.yarn"
-            export PATH="$HOME/.yarn/node_modules/.bin:$PATH"
-          fi
-
-      - name: Install Dependencies
+      - name: Build and Start New Container
         run: |
-          export NVM_DIR="$HOME/.nvm"
-          [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-          
-          # Use local Yarn installation
-          export PATH="$HOME/.yarn/node_modules/.bin:$PATH"
-          yarn install
+          echo "Building new container: ${{ env.TARGET }}"
+          docker compose build --no-cache ${{ env.TARGET }}
+          docker compose up -d --force-recreate ${{ env.TARGET }}
+          echo "Started new container: ${{ env.TARGET }}"
 
-      # ... rest of the workflow remains the same
+      - name: Wait for New Container to be Ready
+        run: sleep 20 
+
+      - name: Check New Deployment Health
+        run: |
+          for i in {1..30}; do
+            STATUS=$(curl -o /dev/null -s -w "%{http_code}" http://localhost:4001 || echo "000")
+            if [ "$STATUS" -eq 200 ]; then
+              echo "Deployment successful!"
+              exit 0
+            fi
+            echo "Waiting for service to start... ($i/30)"
+            sleep 5
+          done
+          echo "Deployment failed!"
+          exit 1
+
+      - name: Restart Nginx to Ensure Traffic Switches
+        run: |
+          echo "Restarting Nginx reverse proxy..."
+          docker restart nginx_reverse_proxy
+
+      - name: Stop and Remove Old Container and Image
+        run: |
+          echo "Stopping old container: ${{ env.OLD }}"
+          docker stop ${{ env.OLD }} && docker rm ${{ env.OLD }}
+          echo "Removing old image..."
+          IMAGE_ID=$(docker images -q $(docker inspect --format='{{.Config.Image}}' ${{ env.OLD }}) || echo "")
+          if [ -n "$IMAGE_ID" ]; then
+            docker rmi -f "$IMAGE_ID"
+            echo "Old image removed: $IMAGE_ID"
+          else
+            echo "No image found for old container."
+          fi
+
+      - name: Remove Unused Docker Images
+        run: docker image prune -f
