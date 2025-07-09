@@ -1,0 +1,21 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Docker Compose Build and Up
+        run: |
+          cd /home/ubuntu/app
+          docker-compose down
+          docker-compose build
+          docker-compose up -d
