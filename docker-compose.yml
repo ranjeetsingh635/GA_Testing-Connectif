@@ -2,10 +2,10 @@ version: '3.8'
 
 services:
   app_green:
-    container_name: app_green
+    container_name: app_connectif
     build:
       context: .
-    image: nextjs_app:green
+    image: nextjs_app
     ports:
       - "4001:4001"
     expose:
