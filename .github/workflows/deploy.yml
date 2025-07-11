@@ -10,12 +10,15 @@ jobs:
     runs-on: self-hosted
 
     steps:
-      - name: Checkout
+      - name: Checkout latest code
         uses: actions/checkout@v3
+
+      - name: Stop and remove old containers & images
+        run: |
+          docker-compose down --rmi all --volumes --remove-orphans || true
+          docker system prune -f
 
       - name: Docker Compose Build and Up
         run: |
-          cd /home/ubuntu/app
-          docker-compose down
-          docker-compose build
+          docker-compose build --no-cache
           docker-compose up -d
