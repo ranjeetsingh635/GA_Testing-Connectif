@@ -36,7 +36,7 @@ function HomeBannerSection() {
               A{" "}
               <span className=" text-light-primaryPurple-tints-900">
                 {" "}
-                Platform8{" "}
+                Platform9{" "}
               </span>{" "}
               Build for New Way of{" "}
               <span className="text-light-primaryPurple-tints-900">
