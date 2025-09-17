@@ -21,8 +21,8 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t ranjeetsingh635/nextjs-app:latest .
-          docker push ranjeetsingh635/nextjs-app:latest
+          docker build -t rsmzp635/nextjs-app:latest .
+          docker push rsmzp635/nextjs-app:latest
 
       - name: Deploy to Minikube
         run: |
