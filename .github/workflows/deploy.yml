@@ -1,4 +1,4 @@
-name: Deploy to EC2
+name: Next.js CI/CD with Minikube
 
 on:
   push:
@@ -6,19 +6,25 @@ on:
       - main
 
 jobs:
-  deploy:
-    runs-on: self-hosted
+  build:
+    runs-on: self-hosted   # use self-hosted runner
 
     steps:
-      - name: Checkout latest code
+      - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Stop and remove old containers & images
-        run: |
-          docker-compose down --rmi all --volumes --remove-orphans || true
-          docker system prune -f
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Docker Compose Build and Up
+      - name: Build and Push Docker Image
         run: |
-          docker-compose build --no-cache
-          docker-compose up -d
+          docker build -t ranjeetsingh635/nextjs-app:latest .
+          docker push ranjeetsingh635/nextjs-app:latest
+
+      - name: Deploy to Minikube
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
