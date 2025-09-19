@@ -15,6 +15,6 @@ spec:
     spec:
       containers:
         - name: nextjs-container
-          image: ranjeetsingh635/nextjs-app:latest
+          image: rsmzp635/nextjs-app:latest
           ports:
             - containerPort: 4001
